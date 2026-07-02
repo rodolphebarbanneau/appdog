@@ -1,0 +1,78 @@
+openapi: 3.1.0
+info:
+  title: Xquik API
+  version: "1.0"
+servers:
+  - url: https://xquik.com
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+paths:
+  /api/v1/x/tweets/search:
+    get:
+      operationId: searchTweets
+      tags: [x, search]
+      summary: Search public tweets
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+        "401":
+          description: Authentication required
+      security:
+        - apiKey: []
+  /api/v1/compose:
+    post:
+      operationId: composeTweet
+      tags: [compose]
+      summary: Compose tweet text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                style:
+                  type: string
+      responses:
+        "200":
+          description: Composed text
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+        "401":
+          description: Authentication required
+      security:
+        - apiKey: []

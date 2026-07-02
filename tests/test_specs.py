@@ -333,6 +333,31 @@ class TestAppSpec:
         assert 'post_pets' in endpoint_names
         assert 'get_pets_by_pet_id' in endpoint_names
 
+    def test_lookup_with_xquik_spec_filters_social_and_compose_tags(
+        self, fixture_path: Path
+    ) -> None:
+        """Test tag and method filters against an API-key protected social API."""
+        with open(fixture_path / 'spec_xquik.yaml') as f:
+            data = yaml.safe_load(f)
+
+        spec = AppSpec(
+            uri='https://xquik.com/openapi.json',
+            data=data,
+            timestamp=datetime.datetime.now(datetime.timezone.utc),
+            hash='xquik_hash',
+        )
+
+        social_endpoints = spec.lookup(include_tags=['x'])
+        compose_endpoints = spec.lookup(include_methods=['post'], include_tags=['compose'])
+
+        assert len(social_endpoints) == 1
+        assert social_endpoints[0].name == 'get_api_v1_x_tweets_search'
+        assert social_endpoints[0].parameters[0]['name'] == 'q'
+        assert social_endpoints[0].responses['401']['description'] == 'Authentication required'
+        assert len(compose_endpoints) == 1
+        assert compose_endpoints[0].name == 'post_api_v1_compose'
+        assert compose_endpoints[0].request_body is not None
+
     def test_lookup_skip_non_operations(self, sample_spec: AppSpec) -> None:
         """Test looking up endpoints skips non-HTTP methods."""
         # Add parameters and other fields to path
